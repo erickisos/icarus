@@ -1,78 +1,72 @@
 {
-	"name": "vscode-irc",
-	"displayName": "IRC",
-	"description": "Open an IRC channel in the editor",
-	"version": "0.3.0",
-	"publisher": "olivier-grech",
-	"icon": "images/icon.png",
-	"repository": {
-		"type": "git",
-		"url": "https://github.com/olivier-grech/vscode-irc"
-	},
-	"bugs": {
-		"url": "https://github.com/olivier-grech/vscode-irc/issues"
-	},
-	"engines": {
-		"vscode": "^1.4.0"
-	},
-	"categories": [
-		"Other"
-	],
-	"activationEvents": [
-		"onCommand:vscodeIrc.openIrc"
-	],
-	"main": "./out/extension",
-	"contributes": {
-		"commands": [
-			{
-				"command": "vscodeIrc.openIrc",
-				"title": "Open IRC",
-				"category": "IRC"
-			},
-			{
-				"command": "vscodeIrc.sendMessage",
-				"title": "Send message",
-				"category": "IRC"
-			}
-		],
-		"languages": [
-			{
-				"id": "irc",
-				"aliases": [
-					"IRC"
-				],
-				"extensions": [
-					".irc"
-				]
-			}
-		],
-		"grammars": [
-			{
-				"language": "irc",
-				"path": "./irc-syntax.json",
-				"scopeName": "source.irc"
-			}
-		]
-	},
-	"watch": {
-		"test": "{src,test}/*.js"
-	},
-	"scripts": {
-		"vscode:prepublish": "tsc -p ./",
-		"compile": "tsc -watch -p ./",
-		"postinstall": "node ./node_modules/vscode/bin/install",
-		"watch": "npm-watch"
-	},
-	"devDependencies": {
-		"@types/mocha": "^2.2.32",
-		"@types/node": "^6.0.114",
-		"tslint": "^3.8.1",
-		"typescript": "^2.9.2",
-		"vscode": "^1.1.18"
-	},
-	"dependencies": {
-		"irc": "^0.5.2",
-		"mkdirp": "^0.5.1",
-		"npm-watch": "^0.3.0"
-	}
+  "name": "icarus",
+  "displayName": "icarus",
+  "description": "A simple IRC Client for VSCode",
+  "version": "0.0.1",
+  "engines": {
+    "vscode": "^1.84.0"
+  },
+  "categories": [
+    "Other"
+  ],
+  "activationEvents": [],
+  "main": "./dist/extension.js",
+  "contributes": {
+    "menus": {
+      "view/title": [
+        {
+          "command": "icarus.openIcarusPanel",
+          "when": "icarusPanelActive",
+          "group": "navigation"
+        }
+      ]
+    },
+    "views": {
+      "icarus": [
+        {
+          "id": "icarusPanel",
+          "name": "ICaRus",
+          "icon": "resources/icarus.svg",
+          "type": "webview"
+        }
+      ]
+    },
+    "commands": [
+      {
+        "command": "icarus.openIcarusPanel",
+        "title": "Open ICaRus Panel"
+      }
+    ]
+  },
+  "scripts": {
+    "vscode:prepublish": "yarn run package",
+    "compile": "webpack",
+    "watch": "webpack --watch",
+    "package": "webpack --mode production --devtool hidden-source-map",
+    "compile-tests": "tsc -p . --outDir out",
+    "watch-tests": "tsc -p . -w --outDir out",
+    "pretest": "yarn run compile-tests && yarn run compile && yarn run lint",
+    "lint": "eslint src --ext ts",
+    "test": "node ./out/test/runTest.js"
+  },
+  "devDependencies": {
+    "@types/jsonwebtoken": "^9.0.5",
+    "@types/mocha": "^10.0.3",
+    "@types/node": "18.x",
+    "@types/vscode": "^1.84.0",
+    "@typescript-eslint/eslint-plugin": "^6.9.0",
+    "@typescript-eslint/parser": "^6.9.0",
+    "@vscode/test-electron": "^2.3.6",
+    "eslint": "^8.52.0",
+    "glob": "^10.3.10",
+    "mocha": "^10.2.0",
+    "ts-loader": "^9.5.0",
+    "typescript": "^5.2.2",
+    "webpack": "^5.89.0",
+    "webpack-cli": "^5.1.4"
+  },
+  "dependencies": {
+    "@ctrl/irc": "^3.0.1",
+    "jsonwebtoken": "^9.0.2"
+  }
 }
