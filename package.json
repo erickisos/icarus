@@ -49,6 +49,26 @@
     },
     "commands": [
       {
+        "command": "icarus.addServer",
+        "title": "Icarus: Add Server"
+      },
+      {
+        "command": "icarus.removeServer",
+        "title": "Icarus: Remove Server"
+      },
+      {
+        "command": "icarus.editServer",
+        "title": "Icarus: Edit Server"
+      },
+      {
+        "command": "icarus.joinChannel",
+        "title": "Icarus: Join Channel"
+      },
+      {
+        "command": "icarus.leaveChannel",
+        "title": "Icarus: Leave Channel"
+      },
+      {
         "command": "icarus.openPanel",
         "title": "Icarus: Open Panel"
       },
