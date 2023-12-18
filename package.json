@@ -1,8 +1,8 @@
 {
   "name": "icarus",
-  "displayName": "icarus",
+  "displayName": "Icarus",
   "description": "A simple IRC Client for VSCode",
-  "version": "0.0.1",
+  "version": "0.1.0",
   "engines": {
     "vscode": "^1.84.0"
   },
@@ -12,29 +12,49 @@
   "activationEvents": [],
   "main": "./dist/extension.js",
   "contributes": {
-    "menus": {
-      "view/title": [
+    "viewsWelcome": [
+      {
+        "view": "explorer",
+        "contents": "No servers connected yet, [Connect to Server](command:icarus.connect)."
+      }
+    ],
+    "viewsContainers": {
+      "activitybar": [
         {
-          "command": "icarus.openIcarusPanel",
-          "when": "icarusPanelActive",
-          "group": "navigation"
+          "id": "icarus-explorer",
+          "title": "Icarus",
+          "icon": "resources/icarus.svg"
         }
       ]
     },
     "views": {
-      "icarus": [
+      "icarus-explorer": [
         {
-          "id": "icarusPanel",
-          "name": "ICaRus",
-          "icon": "resources/icarus.svg",
-          "type": "webview"
+          "id": "ircServers",
+          "name": "Servers"
+        },
+        {
+          "id": "channels",
+          "name": "Channels"
+        },
+        {
+          "id": "users",
+          "name": "Connected Users"
         }
       ]
     },
     "commands": [
       {
-        "command": "icarus.openIcarusPanel",
-        "title": "Open ICaRus Panel"
+        "command": "icarus.openPanel",
+        "title": "Icarus: Open Panel"
+      },
+      {
+        "command": "icarus.connect",
+        "title": "Icarus: Connect to server"
+      },
+      {
+        "command": "icarus.disconnect",
+        "title": "Icarus: Disconnect from server"
       }
     ]
   },

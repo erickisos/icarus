@@ -11,4 +11,5 @@ export interface IrcConnection {
     password: string,
     server: string,
     port: number,
+    serverName: string,
 }

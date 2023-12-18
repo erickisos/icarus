@@ -1,55 +1,29 @@
-import * as vscode from 'vscode';
+
 import { IcarusSidebarProvider } from './views/IcarusSidebarProvider';
 import { IrcConnection } from './types/irc';
+import { passwordInputBox, portInputBox, serverInputBox, usernameInputBox } from './constants';
+import { connectToServer, disconnectFromServer } from './commands/irc';
+import { ExtensionContext, window, commands } from 'vscode';
+import { icarusCommands } from './commands';
+import { ServersTreeProvider } from './views/ServersTreeProvider';
 
-export function activate(context: vscode.ExtensionContext) {
+
+const serversTreeProvider = new ServersTreeProvider([]);
+
+export function activate(context: ExtensionContext) {
 	const provider = new IcarusSidebarProvider(context.extensionUri);
 
+	context.subscriptions.push(window.registerTreeDataProvider('ircServers', serversTreeProvider));
 	context.subscriptions.push(
-		vscode.window.registerWebviewViewProvider(IcarusSidebarProvider.viewType, provider));
+		window.registerWebviewViewProvider(IcarusSidebarProvider.viewType, provider));
 
-	context.subscriptions.push(
-		vscode.commands.registerCommand('icarus.connect', async () => {
-			// TODO [EI]: Add the connection to IRC servers.
-			const server = await vscode.window.showInputBox({
-				title: 'Icarus - Connect to IRC',
-				prompt: 'Enter the IRC server to connect to',
-				placeHolder: 'irc.example.com',
-				ignoreFocusOut: true,
-			});
-			const port = await vscode.window.showInputBox({
-				title: 'Icarus - Connect to IRC',
-				prompt: 'Enter the port to connect to',
-				placeHolder: '6667',
-				ignoreFocusOut: true,
-			});
-			const username = await vscode.window.showInputBox({
-				title: 'Icarus - Connect to IRC',
-				prompt: 'Enter your username',
-				placeHolder: 'example',
-				ignoreFocusOut: true,
-			});
-			const password = await vscode.window.showInputBox({
-				title: 'Icarus - Connect to IRC',
-				prompt: '[Optional] Enter your password',
-				placeHolder: 'password',
-				ignoreFocusOut: true,
-			});
+	icarusCommands.forEach(({ command, callback }) => {
+		context.subscriptions.push(
+			commands.registerCommand(command, () => callback(context))
+		);
+	});
 
-			const connectionState: IrcConnection = {
-				server: server!,
-				port: parseInt(port!),
-				username: username!,
-				password: password!,
-			};
-			console.log(connectionState);
-		})
-	);
-
-	context.subscriptions.push(
-		vscode.commands.registerCommand('icarus.openIcarus', () => {
-		})
-	);
+	window.createOutputChannel('Icarus - Welcome', { log: true });
 }
 
 export function deactivate() {
