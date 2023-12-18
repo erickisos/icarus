@@ -5,7 +5,7 @@ export class ServerNode extends TreeItem {
     public server: IrcConnection;
 
     constructor(server: IrcConnection) {
-        super(server.serverName);
+        super(`${server.serverName} (${server.username})`);
         this.server = server;
     }
 }
@@ -22,6 +22,7 @@ export class ServersTreeProvider implements TreeDataProvider<TreeItem> {
 
     update(servers: IrcConnection[]) {
         this.servers = servers;
+        console.log(this.servers);
         this.event.fire();
     }
 
@@ -32,4 +33,9 @@ export class ServersTreeProvider implements TreeDataProvider<TreeItem> {
     getChildren(element?: TreeItem | undefined): TreeItem[] | Thenable<TreeItem[]> {
         return this.servers.map(server => new ServerNode(server));
     }
+
+    getItems(): IrcConnection[] {
+        return this.servers;
+    }
 }
+

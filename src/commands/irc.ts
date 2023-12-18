@@ -1,12 +1,13 @@
 import { ExtensionContext, QuickPickItem, window } from 'vscode';
 import { serverInputBox, portInputBox, usernameInputBox, passwordInputBox, serverNameInputBox } from '../constants';
 import { IrcConnection } from '../types/irc';
+import { Providers } from '../providers';
 
 const commandLabels = {
     'icarus.connect': 'Icarus: Connect to Server'
 }
 
-export async function connectToServer(context: ExtensionContext): Promise<void> {
+export async function connectToServer(context: ExtensionContext, providers: Providers): Promise<void> {
     const server = await window.showInputBox({
         ...serverInputBox,
         title: commandLabels['icarus.connect'],
@@ -42,13 +43,13 @@ export async function connectToServer(context: ExtensionContext): Promise<void> 
         title: commandLabels['icarus.connect'],
     }) || server;
 
-    addServerToState(context, server, port, username, password, serverName);
-    console.log(context.globalState.get('servers'));
+    addServerToState(context, providers, server, port, username, password, serverName);
+    console.log(providers.servers);
 }
 
-export async function disconnectFromServer(context: ExtensionContext): Promise<void> {
+export async function disconnectFromServer(context: ExtensionContext, providers: Providers): Promise<void> {
     // TODO [EI]: Add the servers list to the quick pick.
-    const servers: QuickPickItem[] = (context.globalState.get('servers') || []).map((server: IrcConnection) => {
+    const servers: QuickPickItem[] = (providers?.servers?.getItems() || []).map((server: IrcConnection) => {
         return {
             label: server.serverName,
             detail: `${server.server} (${server.username})`,
@@ -65,13 +66,13 @@ export async function disconnectFromServer(context: ExtensionContext): Promise<v
             const username = server.detail?.split(' ')[1].replace('(', '').replace(')', '');
 
             if (serverName && username) {
-                removeServerFromState(context, serverName, username);
+                removeServerFromState(context, providers, serverName, username);
             }
         });
     }
 }
-function addServerToState(context: ExtensionContext, server: string, port: string, username: string, password: string | undefined, serverName: string) {
-    const servers: IrcConnection[] = context.globalState.get('servers') || [];
+function addServerToState(context: ExtensionContext, providers: Providers, server: string, port: string, username: string, password: string | undefined, serverName: string) {
+    const servers: IrcConnection[] = providers?.servers?.getItems() || [];
 
     // Check if the server is not already in the list (by server address + username)
     if (servers.find(s => s.server === server && s.username === username)) {
@@ -88,13 +89,14 @@ function addServerToState(context: ExtensionContext, server: string, port: strin
             serverName: serverName || server,
         });
         context.globalState.update('servers', servers);
+        providers.servers.update(servers);
     } catch (error) {
         window.showErrorMessage('Invalid port number.');
     }
 }
 
-function removeServerFromState(context: ExtensionContext, serverName: string, username: string) {
-    const servers: IrcConnection[] = context.globalState.get('servers') || [];
+function removeServerFromState(context: ExtensionContext, providers: Providers, serverName: string, username: string) {
+    const servers: IrcConnection[] = providers?.servers?.getItems() || [];
 
     if (servers.find(s => s.serverName === serverName && s.username === username)) {
         const index = servers.findIndex(s => s.serverName === serverName && s.username === username);
@@ -102,5 +104,5 @@ function removeServerFromState(context: ExtensionContext, serverName: string, us
     }
 
     context.globalState.update('servers', servers);
+    providers.servers.update(servers);
 }
-

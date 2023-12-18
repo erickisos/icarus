@@ -34,12 +34,16 @@
           "name": "Servers"
         },
         {
-          "id": "channels",
-          "name": "Channels"
-        },
-        {
           "id": "users",
           "name": "Connected Users"
+        }
+      ]
+    },
+    "menus": {
+      "view/item/context": [
+        {
+          "command": "icarus.disconnect",
+          "when": "view == ircServers"
         }
       ]
     },
@@ -54,7 +58,7 @@
       },
       {
         "command": "icarus.disconnect",
-        "title": "Icarus: Disconnect from server"
+        "title": "Icarus: Disconnect from servers"
       }
     ]
   },
