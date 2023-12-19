@@ -1,68 +1,26 @@
-'use strict';
+// The module 'vscode' contains the VS Code extensibility API
+// Import the module and reference it with the alias vscode in your code below
+import * as vscode from 'vscode';
 
-import * as irc from 'irc';
-import { workspace, languages, window, commands, ExtensionContext, Disposable, InputBoxOptions } from 'vscode';  
-import ContentProvider, { generateUri } from './provider';
-import IrcInstance from './ircInstance';
+// This method is called when your extension is activated
+// Your extension is activated the very first time the command is executed
+export function activate(context: vscode.ExtensionContext) {
 
-export function activate(context: ExtensionContext) {
+	// Use the console to output diagnostic information (console.log) and errors (console.error)
+	// This line of code will only be executed once when your extension is activated
+	console.log('Congratulations, your extension "icarus" is now active!');
 
-	const provider = new ContentProvider();
-	const providerRegistrations = Disposable.from(
-		workspace.registerTextDocumentContentProvider(ContentProvider.scheme, provider)
-	);
-
-	// Register command that crafts an uri
-	// Open the dynamic document, and shows it in the next editor
-	const openIrcCommandRegistration = commands.registerCommand('vscodeIrc.openIrc', () => {
-		let ircConfiguration = workspace.getConfiguration('irc');
-
-		askUserForIrcInstance().then(value => {
-			openIrcDocument(value);
-		});
+	// The command has been defined in the package.json file
+	// Now provide the implementation of the command with registerCommand
+	// The commandId parameter must match the command field in package.json
+	let disposable = vscode.commands.registerCommand('icarus.helloWorld', () => {
+		// The code you place here will be executed every time your command is executed
+		// Display a message box to the user
+		vscode.window.showInformationMessage('Hello World from icarus!');
 	});
 
-	const sendMessageCommandRegistration = commands.registerTextEditorCommand("vscodeIrc.sendMessage", editor => {  
-		// Get the URI of the active tab
-		// If we can get an IRC client from it, send a message!
-		var ircClient = new irc.Client();
-		ircClient = provider.getClientFromUri(editor.document.uri);
-
-		// Find the name of the channel in the JavaScript object
-		// TODO: this is quite ugly, maybe find a more elegant way
-		var channelName = ircClient.chans[Object.keys(ircClient.chans)[0]].key;
-
-		askUserForValue('Message', 'message').then(value => {
-			ircClient.say(channelName, value);  
-		})
-	});
-
-	context.subscriptions.push(
-		provider,
-		openIrcCommandRegistration,
-		sendMessageCommandRegistration, 
-		providerRegistrations
-	);
+	context.subscriptions.push(disposable);
 }
 
-async function askUserForIrcInstance() {
-	var server = await askUserForValue('Server', 'server');
-	var port = await askUserForValue('Port', 'port');
-	var channel = await askUserForValue('Channel', 'channel (without the #)');
-	var nick = await askUserForValue('Nick', 'nick');
-	return new IrcInstance(server, port, channel, nick);
-}
-
-function askUserForValue(prompt: string, placeholder: string) {
-	let options: InputBoxOptions = {
-		prompt: prompt,
-		placeHolder: placeholder
-	}
-
-	return window.showInputBox(options)
-}
-
-function openIrcDocument(ircInstance: IrcInstance) {
-	const uri = generateUri(ircInstance);
-	return workspace.openTextDocument(uri).then(doc => window.showTextDocument(doc));
-}
+// This method is called when your extension is deactivated
+export function deactivate() {}
