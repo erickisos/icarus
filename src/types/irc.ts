@@ -9,7 +9,7 @@ export interface IrcState {
 export interface IrcConnection {
     username: string,
     password: string,
-    server: string,
+    address: string,
     port: number,
-    serverName: string,
+    name: string,
 }

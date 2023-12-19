@@ -1,12 +1,13 @@
 import { EventEmitter, TreeDataProvider, TreeItem } from 'vscode';
 import { IrcConnection } from '../types/irc';
 
-export class ServerNode extends TreeItem {
-    public server: IrcConnection;
+export class ServerConnectionNode extends TreeItem {
+    public connection: IrcConnection;
 
     constructor(server: IrcConnection) {
-        super(`${server.serverName} (${server.username})`);
-        this.server = server;
+        super(`${server.name} (${server.username})`);
+        this.connection = server;
+        this.tooltip = `${server.address} (${server.port})`;
     }
 }
 
@@ -31,7 +32,7 @@ export class ServersTreeProvider implements TreeDataProvider<TreeItem> {
     }
 
     getChildren(element?: TreeItem | undefined): TreeItem[] | Thenable<TreeItem[]> {
-        return this.servers.map(server => new ServerNode(server));
+        return this.servers.map(server => new ServerConnectionNode(server));
     }
 
     getItems(): IrcConnection[] {

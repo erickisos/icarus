@@ -69,6 +69,10 @@
         "title": "Icarus: Leave Channel"
       },
       {
+        "command": "icarus.sendMessage",
+        "title": "Icarus: Send Message"
+      },
+      {
         "command": "icarus.openPanel",
         "title": "Icarus: Open Panel"
       },

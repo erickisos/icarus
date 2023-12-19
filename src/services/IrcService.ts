@@ -8,7 +8,7 @@ export class IrcService {
 
     constructor(connection: IrcConnection, onMessageCallback: (channel: string, from: string, message: string) => void) {
         this.connection = connection;
-        this.client = new IrcClient(connection.server, connection.username, {
+        this.client = new IrcClient(connection.address, connection.username, {
             port: connection.port,
             secure: true,
             channels: []

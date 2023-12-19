@@ -5,7 +5,7 @@ import { Providers } from '../providers';
 
 const commandLabels = {
     'icarus.connect': 'Icarus: Connect to Server'
-}
+};
 
 export async function connectToServer(context: ExtensionContext, providers: Providers): Promise<void> {
     const server = await window.showInputBox({
@@ -38,12 +38,12 @@ export async function connectToServer(context: ExtensionContext, providers: Prov
         title: commandLabels['icarus.connect'],
     });
 
-    const serverName = await window.showInputBox({
+    const name = await window.showInputBox({
         ...serverNameInputBox,
         title: commandLabels['icarus.connect'],
     }) || server;
 
-    addServerToState(context, providers, server, port, username, password, serverName);
+    addServerToState(context, providers, server, port, username, password, name);
     console.log(providers.servers);
 }
 
@@ -51,8 +51,8 @@ export async function disconnectFromServer(context: ExtensionContext, providers:
     // TODO [EI]: Add the servers list to the quick pick.
     const servers: QuickPickItem[] = (providers?.servers?.getItems() || []).map((server: IrcConnection) => {
         return {
-            label: server.serverName,
-            detail: `${server.server} (${server.username})`,
+            label: server.name,
+            detail: `${server.address} (${server.username})`,
         };
     });
     const selectedServers = await window.showQuickPick(servers,
@@ -71,22 +71,22 @@ export async function disconnectFromServer(context: ExtensionContext, providers:
         });
     }
 }
-function addServerToState(context: ExtensionContext, providers: Providers, server: string, port: string, username: string, password: string | undefined, serverName: string) {
+function addServerToState(context: ExtensionContext, providers: Providers, server: string, port: string, username: string, password: string | undefined, name: string) {
     const servers: IrcConnection[] = providers?.servers?.getItems() || [];
 
     // Check if the server is not already in the list (by server address + username)
-    if (servers.find(s => s.server === server && s.username === username)) {
+    if (servers.find(s => s.address === server && s.username === username)) {
         window.showErrorMessage('You are already connected to this server with this username.');
         return;
     }
 
     try {
         servers.push({
-            server: server,
+            address: server,
             port: parseInt(port),
             username: username,
             password: password || '',
-            serverName: serverName || server,
+            name: name || server,
         });
         context.globalState.update('servers', servers);
         providers.servers.update(servers);
@@ -95,11 +95,11 @@ function addServerToState(context: ExtensionContext, providers: Providers, serve
     }
 }
 
-function removeServerFromState(context: ExtensionContext, providers: Providers, serverName: string, username: string) {
+function removeServerFromState(context: ExtensionContext, providers: Providers, name: string, username: string) {
     const servers: IrcConnection[] = providers?.servers?.getItems() || [];
 
-    if (servers.find(s => s.serverName === serverName && s.username === username)) {
-        const index = servers.findIndex(s => s.serverName === serverName && s.username === username);
+    if (servers.find(s => s.name === name && s.username === username)) {
+        const index = servers.findIndex(s => s.name === name && s.username === username);
         servers.splice(index, 1);
     }
 
