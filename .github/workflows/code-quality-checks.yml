@@ -1,0 +1,19 @@
+name: Code Quality Checks
+
+on:
+  push:
+    branches-ignore:
+      - 'main'
+
+jobs:
+  code-quality:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v2
+      - name: Install dependencies
+        run: yarn install
+      - uses: actions/setup-node@v1
+        with:
+          node-version: 18
+      - name: Run linter
+        run: yarn lint
