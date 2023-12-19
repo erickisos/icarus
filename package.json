@@ -2,6 +2,7 @@
   "name": "icarus",
   "displayName": "icarus",
   "description": "A simple IRC Client for VSCode",
+  "license": "MIT",
   "version": "0.0.1",
   "engines": {
     "vscode": "^1.85.0"
