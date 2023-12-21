@@ -1,0 +1,52 @@
+<?xml version="1.0" encoding="UTF-8" standalone="no"?>
+<svg
+   width="16"
+   height="16"
+   viewBox="0 0 16 16"
+   fill="none"
+   version="1.1"
+   id="svg1"
+   sodipodi:docname="icarus_v3.svg"
+   inkscape:version="1.3.2 (091e20e, 2023-11-25)"
+   xmlns:inkscape="http://www.inkscape.org/namespaces/inkscape"
+   xmlns:sodipodi="http://sodipodi.sourceforge.net/DTD/sodipodi-0.dtd"
+   xmlns="http://www.w3.org/2000/svg"
+   xmlns:svg="http://www.w3.org/2000/svg">
+   <defs
+      id="defs1" />
+   <sodipodi:namedview
+      id="namedview1"
+      pagecolor="#ffffff"
+      bordercolor="#000000"
+      borderopacity="0.25"
+      inkscape:showpageshadow="2"
+      inkscape:pageopacity="0.0"
+      inkscape:pagecheckerboard="0"
+      inkscape:deskcolor="#d1d1d1"
+      inkscape:zoom="55.271236"
+      inkscape:cx="9.3629171"
+      inkscape:cy="9.2272226"
+      inkscape:window-width="1728"
+      inkscape:window-height="1387"
+      inkscape:window-x="0"
+      inkscape:window-y="25"
+      inkscape:window-maximized="0"
+      inkscape:current-layer="svg1" />
+   <g
+      id="g1">
+      <path
+         fill-rule="evenodd"
+         clip-rule="evenodd"
+         d="m 4,11.29 1,-1 v 1.42 L 3.85,12.85 C 3.5096804,13.19032 3,13.338143 3,12.5 V 10 H 1.5 C 1.2863645,10 1,9.7428019 1,9.5 v -8 C 1,1.2682513 1.1974636,1 1.5,1 h 12 C 13.782284,1 14,1.2181998 14,1.5 V 6 H 13 V 2 H 2 V 9 H 3.5 C 3.7689488,9 4,9.1708783 4,9.5 Z"
+         fill="#008b8b"
+         id="path1"
+         sodipodi:nodetypes="cccccccccccccccccccc" />
+      <path
+         d="m 10.600463,12.844208 -0.293595,2.053005 h 1.690262 l 0,1.50222 H 10.056185 L 9.7124185,18.827212 H 8.6811495 L 9.0464009,16.399433 H 6.9623782 L 6.6042884,18.827212 H 5.5730195 L 5.9382708,16.399433 H 4.7780864 l 0,-1.50222 h 1.3965442 l 0.3079177,-2.053005 -1.7045881,0 0.014327,-1.440836 1.9409478,-0.02285 0.3151099,-2.3919709 h 1.031269 L 7.7358572,11.380523 H 9.8413646 L 10.156475,8.9885521 h 1.031268 l -0.336594,2.3919709 h 1.145854 l 0,1.463685 z M 7.1987379,14.897213 H 9.2827606 L 9.5906783,12.844208 H 7.4923324 Z"
+         id="text1"
+         style="font-size:13.9651px;font-family:'Fira Code';-inkscape-font-specification:'Fira Code, @wght=400';font-variation-settings:'wght' 400;fill:#008a8a;fill-opacity:1;stroke-width:1.16374"
+         transform="scale(1.262868,0.79184837)"
+         aria-label="#"
+         sodipodi:nodetypes="cccccccccccccccccccccccccccccccccc" />
+   </g>
+</svg>
