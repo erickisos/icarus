@@ -89,6 +89,25 @@ export async function disconnectServer(context: ExtensionContext, providers: Pro
     console.log(ircServerNode);
 }
 
+export async function addChannel(context: ExtensionContext, providers: Providers, ircServerNode?: IrcServerNode) {
+    console.log(ircServerNode);
+}
+
+export async function leaveChannel(context: ExtensionContext, providers: Providers, target: any) {
+    console.log(target);
+
+}
+
+export async function sendMessage(context: ExtensionContext, providers: Providers, target: any) {
+    console.log(target);
+
+}
+
+export async function sendAction(context: ExtensionContext, providers: Providers, target: any) {
+    console.log(target);
+
+}
+
 // TODO [EI]: Reorganize the next Utility functions into a separated file.
 async function userPickServer(context: ExtensionContext, providers: Providers): Promise<IrcServerNode | undefined> {
     const ircServerNodes: IrcServerNode[] = providers?.servers?.getChildren() ?? [];
