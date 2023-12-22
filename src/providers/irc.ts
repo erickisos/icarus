@@ -1,11 +1,11 @@
-import { EventEmitter, ProviderResult, TreeDataProvider, TreeItem, ThemeIcon } from 'vscode';
+import { EventEmitter, ThemeIcon, TreeDataProvider, TreeItem } from 'vscode';
 
 export interface IrcChannel {
     name: string
 }
 
 export interface IrcServerConnection {
-    address: string,
+    host: string,
     port: number,
     name: string,
     username: string,
@@ -42,7 +42,7 @@ export class IrcServerTreeProvider implements TreeDataProvider<IrcServerNode> {
         return element;
     }
 
-    getChildren(element?: IrcServerNode | undefined): ProviderResult<IrcServerNode[]> {
+    getChildren(element?: IrcServerNode | undefined): IrcServerNode[] {
         return this.ircServerConnections.map(ircServerConnection => new IrcServerNode(ircServerConnection));
     }
 

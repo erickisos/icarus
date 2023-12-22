@@ -13,10 +13,59 @@
   "activationEvents": [],
   "main": "./dist/extension.js",
   "contributes": {
+    "configuration": {
+      "title": "Icarus (IRC)",
+      "properties": {
+        "icarus.configuredServers": {
+          "type": "array",
+          "description": "List of configured servers",
+          "items": {
+            "type": "object",
+            "properties": {
+              "name": {
+                "type": "string",
+                "description": "Readable name of the server"
+              },
+              "host": {
+                "type": "string",
+                "description": "Host address for the connection"
+              },
+              "port": {
+                "type": "number",
+                "description": "Port for the connection"
+              },
+              "tls": {
+                "type": "boolean",
+                "description": "Use TLS to connect to the server"
+              },
+              "username": {
+                "type": "string",
+                "description": "Username for the authentication"
+              },
+              "realname": {
+                "type": "string",
+                "description": "(Optional) Real name to identify yourself on the server"
+              },
+              "password": {
+                "type": "string",
+                "description": "(Optional) Password for the authentication"
+              },
+              "channels": {
+                "type": "array",
+                "description": "List of default channels to join on startup",
+                "items": {
+                  "type": "string"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
     "viewsWelcome": [
       {
         "view": "icarusServers",
-        "contents": "No servers connected yet, you can add one server by clicking [here](command:icarus.addServer)."
+        "contents": "No servers connected yet, you can add one server by clicking in the next button.\n[Add Server](command:icarus.addServer)"
       }
     ],
     "viewsContainers": {
@@ -32,19 +81,21 @@
       "icarus-explorer": [
         {
           "id": "icarusServers",
-          "name": "Icarus"
+          "name": "Servers"
         }
       ]
     },
     "menus": {
       "view/item/context": [
         {
-          "command": "icarus.connectToServer",
-          "when": "view == icarusServers"
+          "command": "icarus.connectServer",
+          "when": "view == icarusServers",
+          "group": "inline"
         },
         {
-          "command": "icarus.disconnectFromServer",
-          "when": "view == icarusServers"
+          "command": "icarus.disconnectServer",
+          "when": "view == icarusServers",
+          "group": "inline"
         },
         {
           "command": "icarus.editServer",
@@ -63,19 +114,23 @@
       },
       {
         "title": "Icarus: Edit Server",
-        "command": "icarus.editServer"
+        "command": "icarus.editServer",
+        "icon": "$(pencil)"
       },
       {
         "title": "Icarus: Remove Server",
-        "command": "icarus.removeServer"
+        "command": "icarus.removeServer",
+        "icon": "$(trashcan)"
       },
       {
         "title": "Icarus: Connect to Server",
-        "command": "icarus.connectToServer"
+        "command": "icarus.connectServer",
+        "icon": "$(zap)"
       },
       {
         "title": "Icarus: Disconnect from Server",
-        "command": "icarus.disconnectFromServer"
+        "command": "icarus.disconnectServer",
+        "icon": "$(sign-out)"
       }
     ]
   },
