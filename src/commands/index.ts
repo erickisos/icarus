@@ -1,6 +1,6 @@
 import { ExtensionContext } from 'vscode';
 import { Providers } from '../providers';
-import { addServer, connectServer, disconnectServer, editServer, removeServer } from './irc';
+import { addServer, connectServer, disconnectServer, editServer, joinChannel, leaveChannel, removeServer, sendAction, sendMessage } from './irc';
 
 export interface Command {
     name: string,
@@ -23,5 +23,17 @@ export const icarusCommands: Command[] = [
     },
     {
         name: 'icarus.disconnectServer', callback: disconnectServer
-    }
+    },
+    {
+        name: 'icarus.joinChannel', callback: joinChannel
+    },
+    {
+        name: 'icarus.leaveChannel', callback: leaveChannel
+    },
+    {
+        name: 'icarus.sendMessage', callback: sendMessage
+    },
+    {
+        name: 'icarus.sendAction', callback: sendAction
+    },
 ];

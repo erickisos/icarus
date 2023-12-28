@@ -89,12 +89,22 @@
       "view/item/context": [
         {
           "command": "icarus.connectServer",
-          "when": "view == icarusServers",
+          "when": "view == icarusServers && viewItem == server",
           "group": "inline"
         },
         {
           "command": "icarus.disconnectServer",
-          "when": "view == icarusServers",
+          "when": "view == icarusServers && viewItem == server",
+          "group": "inline"
+        },
+        {
+          "command": "icarus.joinChannel",
+          "when": "view == icarusServers && viewItem == server",
+          "group": "inline"
+        },
+        {
+          "command": "icarus.leaveChannel",
+          "when": "view == icarusServers && viewItem == channel",
           "group": "inline"
         },
         {
@@ -131,6 +141,16 @@
         "title": "Icarus: Disconnect from Server",
         "command": "icarus.disconnectServer",
         "icon": "$(sign-out)"
+      },
+      {
+        "title": "Icarus: Join channel",
+        "command": "icarus.joinChannel",
+        "icon": "$(add)"
+      },
+      {
+        "title": "Icarus: Leave channel",
+        "command": "icarus.leaveChannel",
+        "icon": "$(close)"
       }
     ]
   },

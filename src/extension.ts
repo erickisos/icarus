@@ -1,12 +1,13 @@
 import { ExtensionContext, commands, window, workspace } from 'vscode';
 import { icarusCommands } from './commands';
 import { Providers } from './providers';
-import { IrcServerConnection, IrcServerTreeProvider } from './providers/irc';
+import { IrcTreeProvider } from './providers/irc';
+import { Server } from './types/server';
 
 export function activate(context: ExtensionContext) {
-	const servers: IrcServerConnection[] = [];
+	const servers: Server[] = [];
 	const configServers = loadServersFromConfig() || [];
-	const contextServers: IrcServerConnection[] = context.globalState?.get('ircServerConnections') || [];
+	const contextServers: Server[] = context.globalState?.get('ircServerConnections') || [];
 
 	// Add servers from context (We assume are the most up to date)
 	servers.push(...configServers);
@@ -14,11 +15,11 @@ export function activate(context: ExtensionContext) {
 	servers.push(...contextServers.filter((server) => !servers.some((s) => s.host === server.host && s.username === server.username)));
 
 	const providers: Providers = {
-		servers: new IrcServerTreeProvider(servers),
+		tree: new IrcTreeProvider(servers),
 	};
 
 	context.subscriptions.push(
-		window.registerTreeDataProvider('icarusServers', providers.servers)
+		window.registerTreeDataProvider('icarusServers', providers.tree)
 	);
 
 	icarusCommands.forEach(({ name, callback }) => {
@@ -34,11 +35,11 @@ export function deactivate() {
 	// Save all the servers to the workspace configuration.
 }
 
-function loadServersFromConfig(): IrcServerConnection[] | undefined {
+function loadServersFromConfig(): Server[] | undefined {
 	const config = workspace.getConfiguration('icarus');
-	const configuredServers: IrcServerConnection[] | null | undefined = config.get('configuredServers');
+	const configuredServers: Server[] | null | undefined = config.get('configuredServers');
 	console.log(configuredServers);
-	return configuredServers?.map<IrcServerConnection>((server) => {
+	return configuredServers?.map<Server>((server) => {
 		return {
 			name: server.name,
 			host: server.host,

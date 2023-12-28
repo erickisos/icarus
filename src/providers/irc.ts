@@ -1,52 +1,34 @@
-import { EventEmitter, ThemeIcon, TreeDataProvider, TreeItem } from 'vscode';
+import { Event, EventEmitter, ProviderResult, TreeDataProvider, TreeItem } from 'vscode';
+import { ServerNode } from '../schema';
+import { IrcTreeElement } from '../schema';
+import { Server } from '../types/server';
 
-export interface IrcChannel {
-    name: string
-}
+export class IrcTreeProvider implements TreeDataProvider<IrcTreeElement> {
+    private _onDidChangeTreeData: EventEmitter<IrcTreeElement | undefined | null> = new EventEmitter<IrcTreeElement | undefined | null>();
+    readonly onDidChangeTreeData: Event<IrcTreeElement | undefined | null> = this._onDidChangeTreeData.event;
 
-export interface IrcServerConnection {
-    host: string,
-    port: number,
-    name: string,
-    username: string,
-    password: string | undefined,
-    channels: IrcChannel[],
-}
+    constructor(public servers: Server[]) { }
 
-export class IrcServerNode extends TreeItem {
-    public ircServerConnection: IrcServerConnection;
-
-    constructor(ircServerConnection: IrcServerConnection) {
-        super(`${ircServerConnection.name} (${ircServerConnection.username})`);
-        this.ircServerConnection = ircServerConnection;
-        this.iconPath = new ThemeIcon('server');
-    }
-}
-
-export class IrcServerTreeProvider implements TreeDataProvider<IrcServerNode> {
-    private ircServerConnections: Array<IrcServerConnection> = [];
-    private event = new EventEmitter<IrcServerNode | undefined | null | void>();
-
-    readonly onDidChangeTreeData = this.event.event;
-
-    constructor(ircServerConnections: Array<IrcServerConnection>) {
-        this.ircServerConnections = ircServerConnections;
+    update(servers: Server[]) {
+        this.servers = servers;
+        this.refresh();
     }
 
-    update(ircServerConnections: IrcServerConnection[]) {
-        this.ircServerConnections = ircServerConnections;
-        this.event.fire();
+    refresh(): void {
+        this._onDidChangeTreeData.fire(undefined);
     }
 
-    getTreeItem(element: IrcServerNode): TreeItem | Thenable<TreeItem> {
-        return element;
+    getTreeItem(element: IrcTreeElement): TreeItem | Thenable<TreeItem> {
+        return element.getTreeItem();
     }
 
-    getChildren(element?: IrcServerNode | undefined): IrcServerNode[] {
-        return this.ircServerConnections.map(ircServerConnection => new IrcServerNode(ircServerConnection));
-    }
-
-    getItems() {
-        return this.ircServerConnections;
+    getChildren(element?: IrcTreeElement | undefined): ProviderResult<IrcTreeElement[] | null> {
+        if (!element) {
+            return this.servers.map(server => new ServerNode(server));
+        }
+        if (element.getChildren) {
+            return element.getChildren();
+        }
+        return null;
     }
 }

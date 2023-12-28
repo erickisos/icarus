@@ -1,5 +1,5 @@
-import { IrcServerTreeProvider } from './irc';
+import { IrcTreeProvider } from './irc';
 
 export interface Providers {
-    servers: IrcServerTreeProvider
+    tree: IrcTreeProvider
 }
