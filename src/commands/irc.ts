@@ -1,6 +1,7 @@
 import { ExtensionContext, QuickPickItem, ThemeIcon, window, workspace } from 'vscode';
+import { ChannelNode, ServerNode } from '../schema';
 import { Providers } from '../providers';
-import { IrcServerConnection, IrcServerNode } from '../providers/irc';
+import { Server } from '../types/server';
 
 export async function addServer(context: ExtensionContext, providers: Providers) {
     const host = await askForInput({ field: 'host', placeholder: 'irc.example.com', password: false, value: '', validateInput: validateHost });
@@ -18,7 +19,7 @@ export async function addServer(context: ExtensionContext, providers: Providers)
     const password = await askForInput({ field: 'password', placeholder: 'password', password: true });
     const name = await askForInput({ field: 'name', placeholder: 'name' });
 
-    const ircServerConnection: IrcServerConnection = {
+    const ircServerConnection: Server = {
         host: host,
         port: parseInt(port),
         name: name || host,
@@ -31,12 +32,12 @@ export async function addServer(context: ExtensionContext, providers: Providers)
 }
 
 
-export async function editServer(context: ExtensionContext, providers: Providers, ircServerNode?: IrcServerNode) {
+export async function editServer(context: ExtensionContext, providers: Providers, ircServerNode?: ServerNode) {
     ircServerNode = ircServerNode ?? await userPickServer(context, providers);
     if (!ircServerNode) {
         return;
     }
-    const ircServerConnection = ircServerNode.ircServerConnection;
+    const ircServerConnection = ircServerNode.server;
     const host = await askForInput({ field: 'host', placeholder: 'irc.example.com', password: false, value: ircServerConnection.host, validateInput: validateHost });
     if (!host || host.trim().length === 0) {
         return;
@@ -61,41 +62,78 @@ export async function editServer(context: ExtensionContext, providers: Providers
     persistIrcServerConnection(context, providers, ircServerConnection);
 }
 
-export async function removeServer(context: ExtensionContext, providers: Providers, ircServerNode?: IrcServerNode) {
+export async function removeServer(context: ExtensionContext, providers: Providers, ircServerNode?: ServerNode) {
     ircServerNode = ircServerNode ?? await userPickServer(context, providers);
     if (!ircServerNode) {
         return;
     }
-    const ircServerConnection = ircServerNode.ircServerConnection;
-    const isConfirmed = await window.showInformationMessage(`Icarus: Removing server ${ircServerConnection.name} (${ircServerConnection.username})`, { modal: true, detail: 'This action cannot be undone, we will disconnect you from the server and delete the configuration, do you want to proceed?' }, 'Proceed');
+    const { server } = ircServerNode;
+    const isConfirmed = await window.showInformationMessage(`Icarus: Removing server ${server.name} (${server.username})`, { modal: true, detail: 'This action cannot be undone, we will disconnect you from the server and delete the configuration, do you want to proceed?' }, 'Proceed');
     if (isConfirmed) {
-        removeIrcServerConnection(context, providers, ircServerConnection);
+        removeIrcServerConnection(context, providers, server);
     }
 }
 
-export async function connectServer(context: ExtensionContext, providers: Providers, ircServerNode?: IrcServerNode) {
+export async function connectServer(context: ExtensionContext, providers: Providers, ircServerNode?: ServerNode) {
+    ircServerNode = ircServerNode ?? await userPickServer(context, providers);
+    if (!ircServerNode) {
+        return;
+    }
+    // TODO: Change flag to true in isConnected.
+    console.log(ircServerNode);
+
+}
+
+export async function disconnectServer(context: ExtensionContext, providers: Providers, ircServerNode?: ServerNode) {
     ircServerNode = ircServerNode ?? await userPickServer(context, providers);
     if (!ircServerNode) {
         return;
     }
     console.log(ircServerNode);
+
 }
 
-export async function disconnectServer(context: ExtensionContext, providers: Providers, ircServerNode?: IrcServerNode) {
+export async function joinChannel(context: ExtensionContext, providers: Providers, ircServerNode?: ServerNode) {
+    if (ircServerNode && !(ircServerNode instanceof ServerNode)) {
+        return;
+    }
     ircServerNode = ircServerNode ?? await userPickServer(context, providers);
     if (!ircServerNode) {
         return;
     }
+    const { server } = ircServerNode;
     console.log(ircServerNode);
+    const channelName = (
+        await window.showInputBox({
+            title: `Icarus: Add Channel`,
+            prompt: `Enter the channel name`,
+            placeHolder: '#general',
+            ignoreFocusOut: true,
+        }) || ''
+    ).trim();
+    if (!channelName || channelName.length === 0) {
+        return;
+    }
+
+    let isAlreadyJoined = server.channels?.find((channel) => channel.name === channelName);
+    if (isAlreadyJoined) {
+        window.showInformationMessage(`Icarus: You are already in ${channelName}`);
+        return;
+    }
+
+    // TODO: Before pushing we need to actually connect to the channel.
+    server.channels?.push({
+        name: channelName,
+        parent: server
+    });
+    persistIrcServerConnection(context, providers, server);
 }
 
-export async function addChannel(context: ExtensionContext, providers: Providers, ircServerNode?: IrcServerNode) {
-    console.log(ircServerNode);
-}
-
-export async function leaveChannel(context: ExtensionContext, providers: Providers, target: any) {
-    console.log(target);
-
+export async function leaveChannel(context: ExtensionContext, providers: Providers, channel: ChannelNode) {
+    if (channel && !(channel instanceof ChannelNode)) {
+        return;
+    }
+    console.log(channel);
 }
 
 export async function sendMessage(context: ExtensionContext, providers: Providers, target: any) {
@@ -109,31 +147,29 @@ export async function sendAction(context: ExtensionContext, providers: Providers
 }
 
 // TODO [EI]: Reorganize the next Utility functions into a separated file.
-async function userPickServer(context: ExtensionContext, providers: Providers): Promise<IrcServerNode | undefined> {
-    const ircServerNodes: IrcServerNode[] = providers?.servers?.getChildren() ?? [];
-    const quickPickServers: QuickPickItem[] = ircServerNodes.map((ircServerNode: IrcServerNode) => ircServerNodeToQuickPickItem(ircServerNode));
+async function userPickServer(context: ExtensionContext, providers: Providers): Promise<ServerNode | undefined> {
+    const servers: ServerNode[] = (providers?.tree?.getChildren() ?? []) as ServerNode[];
+    const quickPickServers: QuickPickItem[] = servers.map((server: ServerNode) => serverToQuickPickItem(server.server));
     const selectedServer = await window.showQuickPick(quickPickServers, { placeHolder: 'Select a server', ignoreFocusOut: true, canPickMany: false });
     if (!selectedServer) {
         return;
     }
-    const username = selectedServer.label.split(' ')[1].replace('(', '').replace(')', '');
-    return ircServerNodes.find((ircServerNode) => {
-        return selectedServer.label === `${ircServerNode.ircServerConnection.name} (${username})`;
+    return servers.find(({ server }) => {
+        return selectedServer.label === `${server.name} (${server.username})`;
     });
 }
 
-function ircServerNodeToQuickPickItem(ircServerNode: IrcServerNode): QuickPickItem {
-    const ircServerConnection = ircServerNode.ircServerConnection;
+// TODO: This is an adapter, all the adapters should handle internal types
+function serverToQuickPickItem(server: Server): QuickPickItem {
     return {
-        label: `${ircServerConnection.name} (${ircServerConnection.username})`,
-        detail: ircServerConnection.host,
+        label: `${server.name} (${server.username})`,
+        detail: server.host,
         iconPath: new ThemeIcon('server')
     };
 }
 
-
-function persistIrcServerConnection(context: ExtensionContext, providers: Providers, ircServerConnection: IrcServerConnection) {
-    const ircServerConnections = providers?.servers?.getItems() || [];
+function persistIrcServerConnection(context: ExtensionContext, providers: Providers, ircServerConnection: Server) {
+    const ircServerConnections = providers?.tree?.servers || [];
     const index = isConnectionPresent(ircServerConnection, ircServerConnections);
 
     if (index !== -1) {
@@ -143,26 +179,26 @@ function persistIrcServerConnection(context: ExtensionContext, providers: Provid
         window.showInformationMessage(`Icarus: Adding server ${ircServerConnection.name} (${ircServerConnection.username})`);
         ircServerConnections.push(ircServerConnection);
     }
-    providers?.servers?.update(ircServerConnections);
+    providers?.tree?.update(ircServerConnections);
     context.globalState?.update('ircServerConnections', ircServerConnections);
     workspace.getConfiguration('icarus').update('configuredServers', ircServerConnections);
 }
 
-function removeIrcServerConnection(context: ExtensionContext, providers: Providers, ircServerConnection: IrcServerConnection) {
-    const ircServerConnections = providers?.servers?.getItems() || [];
-    const index = isConnectionPresent(ircServerConnection, ircServerConnections);
+function removeIrcServerConnection(context: ExtensionContext, providers: Providers, server: Server) {
+    const ircServerConnections = providers?.tree?.servers || [];
+    const index = isConnectionPresent(server, ircServerConnections);
 
     if (index === -1) {
-        window.showInformationMessage(`Icarus: Server ${ircServerConnection.name} (${ircServerConnection.username}) not found`);
+        window.showInformationMessage(`Icarus: Server ${server.name} (${server.username}) not found`);
         return;
     }
     ircServerConnections.splice(index, 1);
-    providers?.servers?.update(ircServerConnections);
+    providers?.tree?.update(ircServerConnections);
     context.globalState?.update('ircServerConnections', ircServerConnections);
     workspace.getConfiguration('icarus').update('configuredServers', ircServerConnections);
 }
 
-function isConnectionPresent(ircServerConnection: IrcServerConnection, ircServerConnections: IrcServerConnection[]): number {
+function isConnectionPresent(ircServerConnection: Server, ircServerConnections: Server[]): number {
     return ircServerConnections.findIndex((connection) => {
         return connection.host === ircServerConnection.host && connection.username === ircServerConnection.username;
     });

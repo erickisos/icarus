@@ -98,6 +98,16 @@
           "group": "inline"
         },
         {
+          "command": "icarus.joinChannel",
+          "when": "view == icarusServers",
+          "group": "inline"
+        },
+        {
+          "command": "icarus.leaveChannel",
+          "when": "view == icarusServers",
+          "group": "inline"
+        },
+        {
           "command": "icarus.editServer",
           "when": "view == icarusServers"
         },
@@ -131,6 +141,16 @@
         "title": "Icarus: Disconnect from Server",
         "command": "icarus.disconnectServer",
         "icon": "$(sign-out)"
+      },
+      {
+        "title": "Icarus: Join channel",
+        "command": "icarus.joinChannel",
+        "icon": "$(add)"
+      },
+      {
+        "title": "Icarus: Leave channel",
+        "command": "icarus.leaveChannel",
+        "icon": "$(close)"
       }
     ]
   },
