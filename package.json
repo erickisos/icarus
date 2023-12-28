@@ -89,22 +89,22 @@
       "view/item/context": [
         {
           "command": "icarus.connectServer",
-          "when": "view == icarusServers",
+          "when": "view == icarusServers && viewItem == server",
           "group": "inline"
         },
         {
           "command": "icarus.disconnectServer",
-          "when": "view == icarusServers",
+          "when": "view == icarusServers && viewItem == server",
           "group": "inline"
         },
         {
           "command": "icarus.joinChannel",
-          "when": "view == icarusServers",
+          "when": "view == icarusServers && viewItem == server",
           "group": "inline"
         },
         {
           "command": "icarus.leaveChannel",
-          "when": "view == icarusServers",
+          "when": "view == icarusServers && viewItem == channel",
           "group": "inline"
         },
         {

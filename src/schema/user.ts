@@ -1,9 +1,10 @@
 import { TreeItemCollapsibleState, TreeItem, ThemeIcon } from 'vscode';
 import { User } from '../types/user';
 import { IrcTreeElement } from './base';
+import { ChannelNode } from '.';
 
 export class UserNode implements IrcTreeElement {
-    constructor(public readonly user: User) { }
+    constructor(public readonly user: User, public readonly parent: ChannelNode) { }
 
     get label(): string {
         return this.user.name;
@@ -19,7 +20,11 @@ export class UserNode implements IrcTreeElement {
             label: this.label,
             collapsibleState: this.collapsibleState,
             iconPath: new ThemeIcon('account'),
-            contextValue: 'userNode'
+            contextValue: 'user'
         };
+    }
+
+    getParent(): ChannelNode {
+        return this.parent;
     }
 }

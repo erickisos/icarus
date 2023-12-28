@@ -11,7 +11,7 @@ export class IrcTreeProvider implements TreeDataProvider<IrcTreeElement> {
 
     update(servers: Server[]) {
         this.servers = servers;
-        this._onDidChangeTreeData.fire(undefined);
+        this.refresh();
     }
 
     refresh(): void {

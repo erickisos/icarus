@@ -2,6 +2,9 @@ import { ExtensionContext, QuickPickItem, ThemeIcon, window, workspace } from 'v
 import { ChannelNode, ServerNode } from '../schema';
 import { Providers } from '../providers';
 import { Server } from '../types/server';
+import { serverToQuickPickItem } from '../adapters';
+import { validateHost, validatePort, validateUsername } from '../validators';
+import { Channel } from '../types/channel';
 
 export async function addServer(context: ExtensionContext, providers: Providers) {
     const host = await askForInput({ field: 'host', placeholder: 'irc.example.com', password: false, value: '', validateInput: validateHost });
@@ -134,6 +137,20 @@ export async function leaveChannel(context: ExtensionContext, providers: Provide
         return;
     }
     console.log(channel);
+
+    const isConfirmed = await window.showInformationMessage(`Icarus: Leaving channel ${channel.channel.name}`, { modal: true, detail: 'This action cannot be undone, we will disconnect you from the channel, do you want to proceed?' }, 'Proceed');
+
+    const serverNode = channel.getParent();
+    const server = {
+        ...serverNode.server,
+    };
+    if (isConfirmed) {
+        const channels = [
+            ...server.channels?.filter((c: Channel) => c.name !== channel.channel.name) || []
+        ];
+        server.channels = channels;
+        persistIrcServerConnection(context, providers, server);
+    }
 }
 
 export async function sendMessage(context: ExtensionContext, providers: Providers, target: any) {
@@ -149,7 +166,7 @@ export async function sendAction(context: ExtensionContext, providers: Providers
 // TODO [EI]: Reorganize the next Utility functions into a separated file.
 async function userPickServer(context: ExtensionContext, providers: Providers): Promise<ServerNode | undefined> {
     const servers: ServerNode[] = (providers?.tree?.getChildren() ?? []) as ServerNode[];
-    const quickPickServers: QuickPickItem[] = servers.map((server: ServerNode) => serverToQuickPickItem(server.server));
+    const quickPickServers: QuickPickItem[] = servers.map(({ server }: ServerNode) => serverToQuickPickItem(server));
     const selectedServer = await window.showQuickPick(quickPickServers, { placeHolder: 'Select a server', ignoreFocusOut: true, canPickMany: false });
     if (!selectedServer) {
         return;
@@ -157,15 +174,6 @@ async function userPickServer(context: ExtensionContext, providers: Providers): 
     return servers.find(({ server }) => {
         return selectedServer.label === `${server.name} (${server.username})`;
     });
-}
-
-// TODO: This is an adapter, all the adapters should handle internal types
-function serverToQuickPickItem(server: Server): QuickPickItem {
-    return {
-        label: `${server.name} (${server.username})`,
-        detail: server.host,
-        iconPath: new ThemeIcon('server')
-    };
 }
 
 function persistIrcServerConnection(context: ExtensionContext, providers: Providers, ircServerConnection: Server) {
@@ -218,37 +226,3 @@ async function askForInput({ field, placeholder, password, value, validateInput 
     return inputValue;
 }
 
-function isEmptyInput(value: string | null): boolean {
-    // TODO [EI]: Add unit tests for this method.
-    return !value || value.trim().length === 0;
-}
-
-function validateHost(value: string) {
-    // TODO [EI]: Add unit tests for this method. Magic Number 3 is the minimum length of a domain considering the TLD.
-    const hostRegex = /^([a-z0-9]+\.?){3,}$/i;
-
-    if (!hostRegex.test(value)) {
-        return 'Host must be a valid domain';
-    }
-    return null;
-}
-
-function validatePort(value: string) {
-    // TODO [EI]: Add unit tests for this method.
-    const portRegex = /^[0-9]+$/;
-
-    if (!portRegex.test(value)) {
-        return 'Port must be a valid number';
-    }
-    return null;
-}
-
-function validateUsername(value: string) {
-    // TODO [EI]: Add unit tests for this method.
-    const usernameRegex = /^[a-z0-9]+$/i;
-
-    if (!usernameRegex.test(value)) {
-        return 'Username must be alphanumeric';
-    }
-    return null;
-}

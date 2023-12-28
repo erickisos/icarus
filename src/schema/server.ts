@@ -11,11 +11,11 @@ export class ServerNode implements IrcTreeElement {
     }
 
     get collapsibleState(): TreeItemCollapsibleState {
-        return this.server.isConnected ? TreeItemCollapsibleState.Expanded : TreeItemCollapsibleState.Collapsed;
+        return (this.server.channels ?? []).length > 0 ? TreeItemCollapsibleState.Expanded : TreeItemCollapsibleState.None;
     }
 
     getChildren(): ChannelNode[] {
-        return this.server.channels?.map(channel => new ChannelNode(channel)) || [];
+        return this.server.channels?.map(channel => new ChannelNode(channel, this)) || [];
     }
 
     getTreeItem(): TreeItem {
@@ -23,7 +23,7 @@ export class ServerNode implements IrcTreeElement {
             label: this.label,
             collapsibleState: this.collapsibleState,
             iconPath: new ThemeIcon('server'),
-            contextValue: 'serverNode'
+            contextValue: 'server'
         };
     }
 }

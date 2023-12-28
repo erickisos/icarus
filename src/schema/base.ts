@@ -6,5 +6,6 @@ export interface IrcTreeElement extends TreeItem {
     iconPath?: string | ThemeIcon;
 
     getChildren?(): IrcTreeElement[];
+    getParent?(): IrcTreeElement | undefined;
     getTreeItem(): TreeItem | Thenable<TreeItem>;
 }
