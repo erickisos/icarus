@@ -6,5 +6,4 @@ export interface Channel {
     name: string,
     users?: User[],
     messages?: Message[]
-    parent: Server,
 }

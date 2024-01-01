@@ -165,6 +165,9 @@
     "lint": "eslint src --ext ts",
     "test": "node ./out/test/runTest.js"
   },
+  "dependencies": {
+    "@ctrl/irc": "^3.0.1"
+  },
   "devDependencies": {
     "@types/vscode": "^1.85.0",
     "@types/mocha": "^10.0.3",

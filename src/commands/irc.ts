@@ -1,37 +1,16 @@
-import { ExtensionContext, QuickPickItem, ThemeIcon, window, workspace } from 'vscode';
-import { ChannelNode, ServerNode } from '../schema';
-import { Providers } from '../providers';
-import { Server } from '../types/server';
+import { ExtensionContext, QuickPickItem, window, workspace } from 'vscode';
 import { serverToQuickPickItem } from '../adapters';
-import { validateHost, validatePort, validateUsername } from '../validators';
+import { askForServer } from '../inputs';
+import { Providers } from '../providers';
+import { ChannelNode, ServerNode } from '../schema';
 import { Channel } from '../types/channel';
+import { Server, isConnected } from '../types/server';
+import { IrcService } from '../services/irc';
 
 export async function addServer(context: ExtensionContext, providers: Providers) {
-    const host = await askForInput({ field: 'host', placeholder: 'irc.example.com', password: false, value: '', validateInput: validateHost });
-    if (!host || host.trim().length === 0) {
-        return;
-    }
-    const port = await askForInput({ field: 'port', placeholder: '6667', password: false, value: '6667', validateInput: validatePort });
-    if (!port || port.trim().length === 0) {
-        return;
-    }
-    const username = await askForInput({ field: 'username', placeholder: 'username', password: false, value: '', validateInput: validateUsername });
-    if (!username || username.trim().length === 0) {
-        return;
-    }
-    const password = await askForInput({ field: 'password', placeholder: 'password', password: true });
-    const name = await askForInput({ field: 'name', placeholder: 'name' });
-
-    const ircServerConnection: Server = {
-        host: host,
-        port: parseInt(port),
-        name: name || host,
-        username: username,
-        password: password || '',
-        channels: []
-    };
-    console.log(ircServerConnection);
-    persistIrcServerConnection(context, providers, ircServerConnection);
+    const server: Server = await askForServer();
+    console.log(server);
+    persistIrcServerConnection(context, providers, server);
 }
 
 
@@ -40,29 +19,9 @@ export async function editServer(context: ExtensionContext, providers: Providers
     if (!ircServerNode) {
         return;
     }
-    const ircServerConnection = ircServerNode.server;
-    const host = await askForInput({ field: 'host', placeholder: 'irc.example.com', password: false, value: ircServerConnection.host, validateInput: validateHost });
-    if (!host || host.trim().length === 0) {
-        return;
-    }
-    const port = await askForInput({ field: 'port', placeholder: '6667', password: false, value: ircServerConnection.port.toString(), validateInput: validatePort });
-    if (!port || port.trim().length === 0) {
-        return;
-    }
-    const username = await askForInput({ field: 'username', placeholder: 'username', password: false, value: ircServerConnection.username, validateInput: validateUsername });
-    if (!username || username.trim().length === 0) {
-        return;
-    }
-    const password = await askForInput({ field: 'password', placeholder: 'password', password: true, value: ircServerConnection.password });
-    const name = await askForInput({ field: 'name', placeholder: 'name', value: ircServerConnection.name });
-
-    ircServerConnection.host = host;
-    ircServerConnection.port = parseInt(port);
-    ircServerConnection.name = name || host;
-    ircServerConnection.username = username;
-    ircServerConnection.password = password || '';
-    console.log(ircServerConnection);
-    persistIrcServerConnection(context, providers, ircServerConnection);
+    const server = await askForServer(ircServerNode?.server);
+    console.log(server);
+    persistIrcServerConnection(context, providers, server, ircServerNode?.server);
 }
 
 export async function removeServer(context: ExtensionContext, providers: Providers, ircServerNode?: ServerNode) {
@@ -85,6 +44,23 @@ export async function connectServer(context: ExtensionContext, providers: Provid
     // TODO: Change flag to true in isConnected.
     console.log(ircServerNode);
 
+    const { server } = ircServerNode;
+    if (isConnected(server)) {
+        window.showInformationMessage(`Icarus: You are already connected to ${server.name} (${server.username})`);
+        return;
+    }
+
+    const ircClient = new IrcService(server, (message: string) => {
+        console.log(message);
+    });
+
+    server.channels?.forEach((channel: Channel) => {
+        ircClient.joinChannel(channel.name);
+    });
+
+    server.client = ircClient;
+
+    persistIrcServerConnection(context, providers, server);
 }
 
 export async function disconnectServer(context: ExtensionContext, providers: Providers, ircServerNode?: ServerNode) {
@@ -94,6 +70,14 @@ export async function disconnectServer(context: ExtensionContext, providers: Pro
     }
     console.log(ircServerNode);
 
+    const { server } = ircServerNode;
+    if (!isConnected(server)) {
+        window.showInformationMessage(`Icarus: You are not connected to ${server.name} (${server.username})`);
+        return;
+    }
+
+    server.client?.disconnect();
+    persistIrcServerConnection(context, providers, server);
 }
 
 export async function joinChannel(context: ExtensionContext, providers: Providers, ircServerNode?: ServerNode) {
@@ -127,7 +111,6 @@ export async function joinChannel(context: ExtensionContext, providers: Provider
     // TODO: Before pushing we need to actually connect to the channel.
     server.channels?.push({
         name: channelName,
-        parent: server
     });
     persistIrcServerConnection(context, providers, server);
 }
@@ -155,12 +138,10 @@ export async function leaveChannel(context: ExtensionContext, providers: Provide
 
 export async function sendMessage(context: ExtensionContext, providers: Providers, target: any) {
     console.log(target);
-
 }
 
 export async function sendAction(context: ExtensionContext, providers: Providers, target: any) {
     console.log(target);
-
 }
 
 // TODO [EI]: Reorganize the next Utility functions into a separated file.
@@ -176,20 +157,28 @@ async function userPickServer(context: ExtensionContext, providers: Providers): 
     });
 }
 
-function persistIrcServerConnection(context: ExtensionContext, providers: Providers, ircServerConnection: Server) {
-    const ircServerConnections = providers?.tree?.servers || [];
-    const index = isConnectionPresent(ircServerConnection, ircServerConnections);
+function persistIrcServerConnection(context: ExtensionContext, providers: Providers, server: Server, prevServer?: Server) {
+    const servers = providers?.tree?.servers || [];
+    const index = isConnectionPresent(prevServer ?? server, servers);
 
     if (index !== -1) {
-        window.showInformationMessage(`Icarus: Updating server info for ${ircServerConnection.name} (${ircServerConnection.username})`);
-        ircServerConnections[index] = ircServerConnection;
+        window.showInformationMessage(`Icarus: Updating server info for ${prevServer?.name} (${prevServer?.username})`);
+        servers[index] = server;
     } else {
-        window.showInformationMessage(`Icarus: Adding server ${ircServerConnection.name} (${ircServerConnection.username})`);
-        ircServerConnections.push(ircServerConnection);
+        window.showInformationMessage(`Icarus: Adding server ${server.name} (${server.username})`);
+        servers.push(server);
     }
-    providers?.tree?.update(ircServerConnections);
-    context.globalState?.update('ircServerConnections', ircServerConnections);
-    workspace.getConfiguration('icarus').update('configuredServers', ircServerConnections);
+    providers?.tree?.update(servers);
+    context.globalState?.update('ircServerConnections', servers);
+    workspace.getConfiguration('icarus').update('configuredServers', servers.map((server: Server): Partial<Server> => {
+        return {
+            name: server.name,
+            host: server.host,
+            port: server.port,
+            username: server.username,
+            password: server.password,
+        };
+    }));
 }
 
 function removeIrcServerConnection(context: ExtensionContext, providers: Providers, server: Server) {
@@ -211,18 +200,3 @@ function isConnectionPresent(ircServerConnection: Server, ircServerConnections: 
         return connection.host === ircServerConnection.host && connection.username === ircServerConnection.username;
     });
 }
-
-async function askForInput({ field, placeholder, password, value, validateInput }: { field: string; isOptional?: boolean; placeholder?: string; password?: boolean; value?: string; validateInput?: (value: string) => string | null; }): Promise<string | null> {
-    const inputValue = await window.showInputBox({
-        title: `Icarus: Add Server Config`,
-        prompt: `Enter the ${field}`,
-        placeHolder: placeholder,
-        value: value,
-        ignoreFocusOut: true,
-        password: password,
-        validateInput: validateInput
-    }) || '';
-
-    return inputValue;
-}
-

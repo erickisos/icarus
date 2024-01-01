@@ -3,6 +3,7 @@ import { icarusCommands } from './commands';
 import { Providers } from './providers';
 import { IrcTreeProvider } from './providers/irc';
 import { Server } from './types/server';
+import { OutputFileService } from './services/file';
 
 export function activate(context: ExtensionContext) {
 	const servers: Server[] = [];
@@ -16,6 +17,7 @@ export function activate(context: ExtensionContext) {
 
 	const providers: Providers = {
 		tree: new IrcTreeProvider(servers),
+		output: new OutputFileService(),
 	};
 
 	context.subscriptions.push(
